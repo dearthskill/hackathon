@@ -31,8 +31,20 @@ Why the other models lost:
 - **KNN** memorises: train F1 = 1.000 vs test 0.927 (overfitting). It is also about 10× slower at inference than every other model (143 ms per 1k fixes).
 - **MLP** is decent, but on tabular data with thresholds (ranks, degrees) it trails boosting. Early stopping halted training at 37 epochs.
 
-Figures to show: `results/figures/cmp_cv_macro_f1.png`, `cmp_test_top1_f1.png`, `cmp_logloss_inference.png`, `cmp_train_vs_test.png`, `cmp_training_histories.png`, `cmp_confusion_matrices.png`.
-(These figures also include the 3 backup models; say so if asked.)
+### Graphs for the 5 models (`scripts/plot_five_models.py`)
+
+| Figure | What it shows |
+|---|---|
+| `results/figures/five_models_summary.png` | **The main slide:** CV macro-F1 (± sd), student-test Top-1, macro-F1, log loss, route continuity and inference time; LightGBM in orange |
+| `results/figures/five_models_cv_folds.png` | Per-fold CV macro-F1 (stability; shows RF vs LightGBM is a tie) |
+| `results/figures/five_models_train_vs_test.png` | Train vs CV vs test macro-F1: LR underfits, KNN memorises, the others overfit mildly |
+| `results/figures/five_models_confusion.png` | Candidate-level confusion matrices |
+| `results/figures/five_models_training_curves.png` | Real training histories: LightGBM per boosting round and MLP per epoch. LR, KNN and RF do not train iteratively, so they have no curve |
+
+![5-model summary](results/figures/five_models_summary.png)
+![Train vs test](results/figures/five_models_train_vs_test.png)
+
+The `cmp_*.png` figures show all 8 models, including the 3 backups.
 
 ---
 
@@ -198,6 +210,7 @@ The guidelines say evaluators may ask about: dataset structure, preprocessing, f
 .venv/bin/python -W ignore scripts/train_models.py
 # or only the 5 presented models
 .venv/bin/python -W ignore scripts/train_models.py LogisticRegression KNN RandomForest LightGBM MLP
-# regenerate comparison figures
+# regenerate comparison figures (all 8 models, and the 5-model set)
 .venv/bin/python -W ignore scripts/make_figures.py
+.venv/bin/python -W ignore scripts/plot_five_models.py
 ```
