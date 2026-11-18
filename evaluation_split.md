@@ -146,13 +146,13 @@ The guidelines say evaluators may ask about: dataset structure, preprocessing, f
 1. **What files does each trip have?** `.track` (longitude, latitude, time; one GPS point per second), `.nodes` (road junction coordinates), `.arcs` (directed road segments, from-node → to-node; the row number is the arc id) and `.route` (the true sequence of arc ids the car drove).
 2. **How many trips per partition?** 80 train, 10 student-test, and 10 evaluator-test. We never touched the evaluator-test trips.
 3. **Does a row in `.track` correspond to a row in `.route`?** No. The route lists road segments; the track lists GPS points. We had to build the point-to-segment link ourselves (see preprocessing question 7).
-4. **What anomalies did you find?** No NaNs, but 28 training trips have time gaps over 30 s (one gap is 42 hours), and in trips 54 and 33 the reference route covers only part of the GPS track. Each trip also comes with its own road-network excerpt.
+4. **What anomalies did you find?** No NaNs, but 28 training trips have time gaps over 30 s (one gap is 42 hours), and some trips have GPS points far from the reference route. In trips 54 and 33 the GPS kept recording for hours in one small area after the route ended (most likely parked); in trip 2 the car drove on roads the route leaves out. See `uncovered_example_trips.png`. Each trip also comes with its own road-network excerpt.
 
 ### Preprocessing
 5. **What cleaning did you do?** Drop invalid or non-finite coordinates, sort by timestamp and drop duplicate timestamps. None were found here, but the checks protect the API.
 6. **Why not use raw latitude/longitude for distances?** Degrees are angles, and a degree of longitude shrinks towards the poles. We project each trip to a local metric plane (metres), with an error below 0.1% at trip scale.
 7. **How did you get a label for each GPS point?** We use a monotone alignment (dynamic programming): each point is matched to a route position, positions never go backwards in time, and the total point-to-segment distance is minimised. This handles loops and revisited roads.
-8. **What is an "unreliable" label?** A point more than 100 m from its aligned route segment. The route doesn't cover it, so we exclude it from training and scoring (about 10% of training points, mostly in 2 trips).
+8. **What is an "unreliable" label?** A point more than 100 m from its aligned route segment. The route doesn't cover it, so we exclude it from training and scoring: about 10% of training points (20,539), mostly from long stays after the route ends in trips 54 and 33, and only 0.1% of student-test points.
 
 ### Feature engineering
 9. **What is a candidate?** Any road segment within 50 m of a GPS point, up to 12 per point. The true segment is missing from the candidates only 1.4% of the time on train and 0.12% on student-test (the "candidate miss rate").

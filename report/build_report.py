@@ -275,7 +275,7 @@ over the largest trip extent the distortion is &lt; 0.1 %, far below GPS noise, 
 to route positions with a <i>monotone dynamic programme</i> (position non-decreasing in time, minimum total point-to-arc distance), which handles loops and revisited arcs.</li>
 <li><b>Label reliability</b>: fixes whose aligned reference arc is &gt; {config.LABEL_MAX_DIST_M:.0f} m away are flagged unreliable (the reference route does not cover them) and are
 excluded from training and scoring. This affects {pct(1 - tr['label_reliable_frac'])} of train fixes — concentrated in a few trips, e.g. trip {low_rel.iloc[0].trip:08d}
-({pct(low_rel.iloc[0].reliable_frac)} reliable) and {low_rel.iloc[1].trip:08d} ({pct(low_rel.iloc[1].reliable_frac)}) where the reference route covers only part of the GPS track — and only {pct(1 - st['label_reliable_frac'], 2)} of student-test fixes.</li>
+({pct(low_rel.iloc[0].reliable_frac)} reliable) and {low_rel.iloc[1].trip:08d} ({pct(low_rel.iloc[1].reliable_frac)}) where the GPS kept recording for hours in a small area after the route ended (the car most likely parked; Fig. 2.9) — and only {pct(1 - st['label_reliable_frac'], 2)} of student-test fixes.</li>
 <li><b>Candidate generation</b> (<code>pathsnap/features.py</code>): every directed arc within {config.CAND_RADIUS_M:.0f} m of a fix (STR-tree query), at most {config.CAND_MAX_K} nearest;
 fixes with none fall back to the {config.CAND_FALLBACK_K} nearest arcs. Candidate miss rate (reference arc not in the set): <b>{pct(tr['candidate_miss_rate'], 2)}</b> (train, reliable fixes) and <b>{pct(st['candidate_miss_rate'], 2)}</b> (student-test).</li>
 <li><b>Training rows</b>: consecutive 1 Hz fixes are near-duplicates, so only every {config.TRAIN_OBS_STRIDE}rd fix of the training trips is used for fitting (≈440k candidate rows); scoring uses all fixes.</li>
@@ -305,6 +305,11 @@ near intersections several arcs are within a few metres. Direction and temporal 
 {fig('eda_missing_values.png', 'Fig. 2.4a – Missing / invalid value analysis per partition.', 75)}
 {fig('eda_locations_network.png', 'Fig. 2.4b – Trip locations and road-network sizes (train + student_test).')}
 {fig('eda_connectivity.png', 'Fig. 2.5 – Road-network connectivity: weakly connected components and largest-component share (train + student_test).')}
+{fig('gaps_overview.png', 'Fig. 2.7a – Time gaps by size per partition, and per trip for the 47 trips with a gap &gt; 5 s (train + student_test).')}
+{fig('gaps_largest_per_trip.png', 'Fig. 2.7b – Largest time gap per trip; above 120 s the HMM restarts the chain.')}
+{fig('gaps_example_trip.png', 'Fig. 2.7c – What gaps look like: time between fixes along train trip 00000006 and where they occur on the map.')}
+{fig('uncovered_overview.png', 'Fig. 2.8 – GPS fixes more than 100 m from the reference route, per trip and per partition (excluded from training and scoring).')}
+{fig('uncovered_example_trips.png', 'Fig. 2.9 – Two causes of uncovered fixes: a long stay in a small area after the route ends (train trips 00000054: 16,454 fixes within ~186 m over 5.0 h; 00000033: 2,978 fixes within ~13 m over 0.9 h), and real driving on roads that the reference route omits (train trip 00000002).')}
 {fig('eda_trajectories.png', 'Fig. 2.6 – GPS trajectory plots with road-network geometry and reference route (train trips 00000003 and 00000002; the latter has fixes off the reference route).')}
 {shot('eda_folium.png', 'Fig. 2.7 – Folium map (train trip 00000003): raw GPS, reference route, nearby road network, with layer control. Interactive: <code>results/maps/eda_train_00000003.html</code>.')}
 
@@ -330,6 +335,10 @@ log loss; KNN is ~10× slower at inference; Naive Bayes is poorly calibrated. <b
 {''.join(sections)}
 
 <h3>3.3 Model visualisations</h3>
+<p>First evaluation: the 5 presented models, one per algorithm family (Figs. 3.3-i to 3.3-iii). The figures after them show all 8 models.</p>
+{fig('five_models_summary.png', 'Fig. 3.3-i – 5-model summary: CV macro-F1, student-test Top-1, macro-F1, log loss, route continuity and inference time (LightGBM selected, in orange).')}
+{fig('five_models_train_vs_test.png', 'Fig. 3.3-ii – 5 models: train vs CV vs student-test macro-F1 (over/underfitting).', 85)}
+{fig('five_models_cv_folds.png', 'Fig. 3.3-iii – 5 models: per-fold CV macro-F1 (stability).', 70)}
 {fig('cmp_cv_macro_f1.png', 'Fig. 3.3a – CV macro-F1 across all models (mean ± s.d. over 5 trip-grouped folds; selected model in orange).', 80)}
 {fig('cmp_cv_folds_box.png', 'Fig. 3.3b – Fold-wise CV macro-F1 (stability).', 80)}
 {fig('cmp_test_top1_f1.png', 'Fig. 3.3c – Student-test Top-1 accuracy and macro-F1.')}
